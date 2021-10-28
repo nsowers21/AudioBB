@@ -1,3 +1,3 @@
 package edu.temple.audiobb
 
-data class Book(var title: String, var author: String)
+data class Book(var title2: String, var author2: String)

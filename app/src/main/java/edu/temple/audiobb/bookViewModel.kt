@@ -8,16 +8,17 @@ class bookViewModel: ViewModel() {
 
 
 
-    private val book: MutableLiveData<String> by lazy{
-        MutableLiveData<String>()
+    private val book: MutableLiveData<Book> by lazy{
+        MutableLiveData<Book>()
     }
 
-    fun getBook(): LiveData<String>{
+    fun getBook(): LiveData<Book>{
         return book
     }
 
-    fun setSelectedBook(selectedBook: String){
-        this.book.value = selectedBook
+    fun setSelectedBook(item: Book){
+        book.value = item
+        book.postValue(book.value)
     }
     val books = BookList().apply {
         add(Book("Count of Monte Cristo", "Alexandre Dumas"))
@@ -25,7 +26,7 @@ class bookViewModel: ViewModel() {
         add(Book("The Great Gatsby", "F.Scott Fitzgerld"))
         add(Book("The Call of the Wild", "Jack London"))
         add(Book("The lliad", "Homer"))
-        add(Book("Charlie and the Chocolate Factory", "Roald Dahl"))
+        add(Book("Charlie's Chocolate Factory", "Roald Dahl"))
         add(Book("The Outsiders", "S.E.Hinton"))
         add(Book("The Godfather", "Mario Puzo"))
         add(Book("Ulysses", "James Joyce"))
