@@ -6,8 +6,7 @@ import androidx.lifecycle.ViewModel
 
 class bookViewModel: ViewModel() {
 
-    var listFrag = BookListFragment.newInstance(books)
-    var detailsFrag = BookDetailsFragment()
+
 
     private val book: MutableLiveData<String> by lazy{
         MutableLiveData<String>()
@@ -45,5 +44,6 @@ class bookViewModel: ViewModel() {
         twoPane.value=pane
     }
 
-
+    val booklistFrag = BookListFragment.newInstance(books)
+    var bookDetFrag = BookDetailsFragment()
 }
