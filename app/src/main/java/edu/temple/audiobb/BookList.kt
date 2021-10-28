@@ -1,5 +1,3 @@
 package edu.temple.audiobb
 
-class BookList {
-
-}
+class BookList :ArrayList<Book>()
