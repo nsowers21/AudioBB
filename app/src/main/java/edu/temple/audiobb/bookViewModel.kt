@@ -20,7 +20,10 @@ class bookViewModel: ViewModel() {
         book.value = item
         book.postValue(book.value)
     }
-    val books = BookList().apply {
+
+    val books = BookList()
+        /*
+        .apply {
         add(Book("Count of Monte Cristo", "Alexandre Dumas"))
         add(Book("To Kill a Mockingbird", "Harper Lee"))
         add(Book("The Great Gatsby", "F.Scott Fitzgerld"))
@@ -34,6 +37,8 @@ class bookViewModel: ViewModel() {
         add(Book("The Shinning", "Stephen King"))
         add(Book("Lone Survivor", "Marcus Littrell"))
     }
+    */
+
 
     private val twoPane: MutableLiveData<Boolean>by lazy{
         MutableLiveData<Boolean>()

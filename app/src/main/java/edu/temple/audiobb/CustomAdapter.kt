@@ -21,8 +21,8 @@ class CustomAdapter(private val activity: MainActivity, private var listofBooks:
 
     override fun onBindViewHolder(holder: ViewHolder, position: Int) {
         //gets the position that was clicked from the list to give to the book class
-        holder.author.text=listofBooks[position].author2
-        holder.title.text= listofBooks[position].title2
+        holder.author.text=listofBooks[position].coverURL
+        holder.title.text= listofBooks[position].id
         //setting an on clicklistener for the book that is clicked
         holder.itemView.setOnClickListener{
             viewModel.setSelectedBook(listofBooks[position])

@@ -33,8 +33,8 @@ class BookDetailsFragment : Fragment() {
         author= view.findViewById(R.id.authDet)
         title = view.findViewById(R.id.titleDet)
         viewModel.getBook().observe(viewLifecycleOwner, {
-            activity?.title = it.title2
-            title.text  = it.title2
+            activity?.title = it.id
+            title.text  = it.id
             author.text = it.author2
         })
         return view
