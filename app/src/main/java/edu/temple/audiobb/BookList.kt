@@ -1,12 +1,13 @@
 package edu.temple.audiobb
 
+import org.json.JSONObject
 import java.io.Serializable
 
 object BookList :Serializable{
     private val bookList : MutableList<Book> by lazy {
         ArrayList()
     }
-    fun addBooks(library: List<Book>){
+    fun addBooks(library: ArrayList<Book>){
         for(book in library){
             addBook(book)
         }

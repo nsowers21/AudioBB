@@ -4,13 +4,10 @@ import android.os.Bundle
 import androidx.fragment.app.Fragment
 import android.view.View
 import android.view.ViewGroup
-import androidx.core.os.bundleOf
 import androidx.recyclerview.widget.LinearLayoutManager
 import androidx.recyclerview.widget.RecyclerView
 import android.view.LayoutInflater
 import androidx.fragment.app.activityViewModels
-import androidx.lifecycle.ViewModel
-import java.lang.NullPointerException
 
 class BookListFragment : Fragment() {
     // TODO: Rename and change types of parameters

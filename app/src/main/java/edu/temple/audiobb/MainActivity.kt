@@ -1,7 +1,6 @@
 package edu.temple.audiobb
 
 import android.content.Intent
-import android.content.res.Configuration
 import androidx.appcompat.app.AppCompatActivity
 import android.os.Bundle
 import android.view.View
@@ -21,6 +20,8 @@ class MainActivity : AppCompatActivity() {
         val searchActivity = Intent(this, SearchActivity::class.java)
         //starts the main activity with the search button
         findViewById<Button>(R.id.searchButton).setOnClickListener{startActivity(searchActivity)}
+        if (supportFragmentManager.findFragmentById(R.id.fragmentContainer1) is BookDetailsFragment) {
+        }
         if(landscape&&supportFragmentManager.findFragmentById(R.id.containerDet)!is BookDetailsFragment){
             supportFragmentManager.commit{
                 add(R.id.containerDet,BookDetailsFragment())
@@ -47,7 +48,7 @@ class MainActivity : AppCompatActivity() {
         viewModel.setSelectedBook(null)
     }//end of onBackPressed
 
-    override fun selectedBook(){
+    fun selectedBook(){
         if(!landscape){
             supportFragmentManager.commit {
                 replace(R.id.fragmentContainer1,BookDetailsFragment())
