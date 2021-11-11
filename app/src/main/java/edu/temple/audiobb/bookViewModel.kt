@@ -10,7 +10,7 @@ class bookViewModel: ViewModel() {
         return book
     }
 
-    fun setSelectedBook(item: Book) {
+    fun setSelectedBook(item: Book?) {
         book.value = item
         book.postValue(book.value)
     }

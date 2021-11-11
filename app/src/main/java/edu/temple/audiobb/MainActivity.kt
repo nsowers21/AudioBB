@@ -4,6 +4,7 @@ import android.content.Intent
 import android.content.res.Configuration
 import androidx.appcompat.app.AppCompatActivity
 import android.os.Bundle
+import android.view.View
 import android.widget.Button
 import androidx.activity.viewModels
 import androidx.fragment.app.commit
@@ -11,31 +12,51 @@ import androidx.fragment.app.commit
 class MainActivity : AppCompatActivity() {
 
     private val viewModel: bookViewModel by viewModels()
+    var landscape = false
 
     override fun onCreate(savedInstanceState: Bundle?) {
         super.onCreate(savedInstanceState)
         setContentView(R.layout.activity_main)
+        landscape= findViewById<View>(R.id.containerDet)!=null
         val searchActivity = Intent(this, SearchActivity::class.java)
+        //starts the main activity with the search button
         findViewById<Button>(R.id.searchButton).setOnClickListener{startActivity(searchActivity)}
+        if(landscape&&supportFragmentManager.findFragmentById(R.id.containerDet)!is BookDetailsFragment){
+            supportFragmentManager.commit{
+                add(R.id.containerDet,BookDetailsFragment())
+            }
+        }//end of if
+        else{
+            supportFragmentManager.popBackStack()
+        }//end of else
+        if(savedInstanceState==null){
+            supportFragmentManager.commit{
+                add(R.id.fragmentContainer1,BookListFragment())
+            }
+        }//end of if for instanceState
+        else{
+            supportFragmentManager.commit{
+                replace(R.id.fragmentContainer1,BookDetailsFragment())
+            }
+        }//end of else for savedState
+    }//end of onCreate
 
-
-
-
-    }
     //callbacks in reverse
     override fun onBackPressed() {
         super.onBackPressed()
-        viewModel.setSelectedBook(Book("",""))
-    }
+        viewModel.setSelectedBook(null)
+    }//end of onBackPressed
+
     override fun selectedBook(){
-        if(vertical){
+        if(!landscape){
             supportFragmentManager.commit {
-                replace(R.id.)
+                replace(R.id.fragmentContainer1,BookDetailsFragment())
+                setReorderingAllowed(true)
             }
         }
-    }
+    }//end of selectedBook
 
-}
+}//end of class
 
 /*
       viewModel.setTwoPane(resources.configuration.orientation==Configuration.ORIENTATION_LANDSCAPE)

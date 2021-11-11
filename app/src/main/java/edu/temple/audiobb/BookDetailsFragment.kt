@@ -16,10 +16,9 @@ import com.squareup.picasso.Picasso
 class BookDetailsFragment : Fragment() {
 
     private val viewModel: bookViewModel by activityViewModels()
-    private lateinit var cover:ImageView
-    private lateinit var title:TextView
-    private lateinit var author:TextView
-
+    private lateinit var coverOfBook:ImageView
+    private lateinit var titleOfBook:TextView
+    private lateinit var authorOfBook:TextView
 
     override fun onCreateView(
         inflater: LayoutInflater, container: ViewGroup?,
@@ -28,29 +27,29 @@ class BookDetailsFragment : Fragment() {
         // Inflate the layout for this fragment
         val view = inflater.inflate(R.layout.fragment_book_details, container, false)
         //Get the view from the layout to wire up
-        cover = view.findViewById<ImageView>(R.id.bookCover)
-        author= view.findViewById<TextView>(R.id.authDet)
-        title = view.findViewById<TextView>(R.id.titleDet)
+        coverOfBook = view.findViewById<ImageView>(R.id.bookCover)
+        authorOfBook= view.findViewById<TextView>(R.id.authDet)
+        titleOfBook = view.findViewById<TextView>(R.id.titleDet)
 
         return view
-        }
+        }//end of view
+
+    //Once the view is created this allows for the book to be changed by calling the changeBook function
     override fun onViewCreated(view: View, savedInstanceState: Bundle?) {
         super.onViewCreated(view, savedInstanceState)
-        viewModel.getBookSelected().observe(requireActivity(), {
+        viewModel.getBook().observe(requireActivity(), {
             changeBook(it)
         })
+    }//end of onViewCreated
 
-    }
     //Changes the book cover, title, and author everytime a new one is selected
-    private fun changeBook(Book: Book){
-        Book?.run {
-            title.text
-            Picasso.get().load(coverURL).into(cover)
-
+    private fun changeBook(book: Book?){
+        book?.run {
+            Picasso.get().load(coverURL).into(coverOfBook)
+            Picasso.get().load(coverURL).into(coverOfBook)
+            titleOfBook.text=title
         }
+    }//end of change book
 
-    }
-
-
-}
+}//end of BookDetailFragment
 
