@@ -7,44 +7,36 @@ import android.widget.TextView
 import androidx.fragment.app.commit
 import androidx.recyclerview.widget.RecyclerView
 
-class CustomAdapter(private val activity: MainActivity, private var listofBooks: BookList, var viewModel: bookViewModel): RecyclerView.Adapter<CustomAdapter.ViewHolder>(){
-    class ViewHolder(itemView: View): RecyclerView.ViewHolder(itemView){
+class CustomAdapter(listofBooks: BookList, clicked: (Book)->Unit): RecyclerView.Adapter<CustomAdapter.ViewHolder>(){
+    val list = listofBooks
+    val clicked = clicked
+
+    class ViewHolder(itemView: View, clicked: (Book)->Unit): RecyclerView.ViewHolder(itemView){
+        lateinit var Book:Book
         var title: TextView = itemView.findViewById(R.id.Booktitle)
         var author: TextView = itemView.findViewById(R.id.BookAuthor)
+        init{
+            title.setOnClickListener {
+                clicked(Book)
+            }
+        }
     }
 
     override fun onCreateViewHolder(parent: ViewGroup, viewType: Int): ViewHolder {
-        return ViewHolder(
-            LayoutInflater.from(parent.context).inflate(R.layout.book, parent, false)
-        )
+        return ViewHolder(LayoutInflater.from(parent.context).inflate(R.layout.book, parent, false), clicked)
     }
 
     override fun onBindViewHolder(holder: ViewHolder, position: Int) {
         //gets the position that was clicked from the list to give to the book class
-        holder.author.text=listofBooks[position].coverURL
-        holder.title.text= listofBooks[position].id
-        //setting an on clicklistener for the book that is clicked
-        holder.itemView.setOnClickListener{
-            viewModel.setSelectedBook(listofBooks[position])
-            viewModel.getTwoPane().observe(activity,{
-                if(!it){
-                    activity.supportFragmentManager.commit{
-                       replace(R.id.fragmentContainerView, viewModel.bookDetFrag).addToBackStack(null)
-                    }
-                }//end of if
-                else if(it){
-                    viewModel.bookDetFrag=BookDetailsFragment()
-                    activity.supportFragmentManager.commit{
-                        remove(viewModel.bookDetFrag)
-                        add(R.id.containerDet,viewModel.bookDetFrag)
-                    }
-                }//end of elseif
-            })
-        }//end of on clickListener
+        holder.author.text=list[position].title
+        holder.title.text= list[position].author
+        holder.Book= list[position]
+
+
 
     }//end of onBind
 
     override fun getItemCount(): Int {
-        return listofBooks.size
+        return list.size()
     }
 }

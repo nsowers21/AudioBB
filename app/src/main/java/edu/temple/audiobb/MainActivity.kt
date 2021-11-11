@@ -27,8 +27,16 @@ class MainActivity : AppCompatActivity() {
         super.onBackPressed()
         viewModel.setSelectedBook(Book("",""))
     }
+    override fun selectedBook(){
+        if(vertical){
+            supportFragmentManager.commit {
+                replace(R.id.)
+            }
+        }
+    }
 
 }
+
 /*
       viewModel.setTwoPane(resources.configuration.orientation==Configuration.ORIENTATION_LANDSCAPE)
       //leaving blank to start

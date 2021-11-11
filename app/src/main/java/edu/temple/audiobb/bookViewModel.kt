@@ -6,23 +6,22 @@ import androidx.lifecycle.ViewModel
 
 class bookViewModel: ViewModel() {
 
-
-
-    private val book: MutableLiveData<Book> by lazy{
-        MutableLiveData<Book>()
-    }
-
-    fun getBook(): LiveData<Book>{
+    fun getBook(): LiveData<Book> {
         return book
     }
 
-    fun setSelectedBook(item: Book){
+    fun setSelectedBook(item: Book) {
         book.value = item
         book.postValue(book.value)
     }
 
+    private val book: MutableLiveData<Book> by lazy {
+        MutableLiveData<Book>()
+    }
+}
+
+/*
     val books = BookList()
-        /*
         .apply {
         add(Book("Count of Monte Cristo", "Alexandre Dumas"))
         add(Book("To Kill a Mockingbird", "Harper Lee"))
@@ -40,16 +39,3 @@ class bookViewModel: ViewModel() {
     */
 
 
-    private val twoPane: MutableLiveData<Boolean>by lazy{
-        MutableLiveData<Boolean>()
-    }
-    fun getTwoPane():LiveData<Boolean>{
-        return twoPane
-    }
-    fun setTwoPane(pane: Boolean){
-        twoPane.value=pane
-    }
-
-    val booklistFrag = BookListFragment.newInstance(books)
-    var bookDetFrag = BookDetailsFragment()
-}
