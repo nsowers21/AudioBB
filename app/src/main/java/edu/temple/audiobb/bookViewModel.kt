@@ -1,5 +1,6 @@
 package edu.temple.audiobb
 
+import edu.temple.audlibplayermaster.PlayerService
 import androidx.lifecycle.LiveData
 import androidx.lifecycle.MutableLiveData
 import androidx.lifecycle.ViewModel
@@ -16,6 +17,17 @@ class bookViewModel: ViewModel() {
 
     fun setSelectedBook(item: Book?) {
         this.book.value = item
+    }
+    private val progress: MutableLiveData<PlayerService.BookProgress> by lazy {
+        MutableLiveData()
+    }
+
+    fun getProg(): LiveData<PlayerService.BookProgress> {
+        return progress
+    }
+
+    fun setProg(progress: PlayerService.BookProgress?) {
+        this.progress.value = progress
     }
 }
 
