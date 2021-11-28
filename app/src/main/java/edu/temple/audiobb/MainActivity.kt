@@ -9,7 +9,9 @@ import androidx.appcompat.app.AppCompatActivity
 import android.view.View
 import android.widget.ImageButton
 import androidx.activity.result.contract.ActivityResultContracts
+import androidx.fragment.app.commit
 import androidx.lifecycle.ViewModelProvider
+import edu.temple.audlibplayer.PlayerService
 
 
 class MainActivity : AppCompatActivity() , BookListFragment.BookSelectedInterface, ControllerFragment.ControllerInterface{
@@ -17,8 +19,7 @@ class MainActivity : AppCompatActivity() , BookListFragment.BookSelectedInterfac
     private lateinit var bookListFragment: BookListFragment
     private lateinit var controllerFragment: ControllerFragment
     var connected = false
-    public lateinit var controllerServiceBinder: PlayerService.MediaControlBinder
-
+    lateinit var bookViewModel: bookViewModel
 
    private val searchRequest = registerForActivityResult(ActivityResultContracts.StartActivityForResult()){
        supportFragmentManager.popBackStack()
@@ -101,21 +102,22 @@ class MainActivity : AppCompatActivity() , BookListFragment.BookSelectedInterfac
     val controllerHandler = object:Handler(Looper.myLooper()!!){
         override fun handleMessage(msg: Message) {
             if(msg.obj!=null){
-                bookListViewModel.setProgess(msg.obj as PlayerService.BookProgress)
+                bookViewModel.setProgess(msg.obj as PlayerService.BookProgress)
             }
         }
     }
     private lateinit var controlFragment: ControllerFragment
-
+    lateinit var playerService: PlayerService.MediaControlBinder
     private val serviceConnect = object : ServiceConnection {
         override fun onServiceConnected(name: ComponentName?, service: IBinder?) {
             connected = true
+            playerService = service as PlayerService.MediaControlBinder
             playerService.setProgressHandler(controllerHandler)
-            playerService = service as playerService.MediaControlBinder
             controlFragment = ControllerFragment()
-            supportFragmentManager.beginTransaction()
-                .add(R.id.container3,ControllerFragment())
-                .commit()
+            supportFragmentManager.commit {
+                add(R.id.container3, controlFragment)
+                hide(controlFragment)
+            }
         }
         override fun onServiceDisconnected(name: ComponentName?) {
             connected=false
@@ -125,7 +127,7 @@ class MainActivity : AppCompatActivity() , BookListFragment.BookSelectedInterfac
 
     override fun rewind() {
         if(playerService.isPlaying){
-            bookListViewModel.getProgress().value?.progress?.let { it1 -> playerService.seekTo(it1 - 10) }
+            bookViewModel.getProgress().value?.progress?.let { it1 -> playerService.seekTo(it1 - 10) }
         }
     }
 
@@ -143,7 +145,7 @@ class MainActivity : AppCompatActivity() , BookListFragment.BookSelectedInterfac
 
     override fun fastforward() {
         if(playerService.isPlaying){
-            bookListViewModel.getProgress().value?.progress?.let { it1 -> playerService.seekTo(it1 + 10) }
+            bookViewModel.getProgress().value?.progress?.let { it1 -> playerService.seekTo(it1 + 10) }
         }
     }
 

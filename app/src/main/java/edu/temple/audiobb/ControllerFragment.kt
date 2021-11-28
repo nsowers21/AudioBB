@@ -11,6 +11,7 @@ import android.widget.ImageView
 import android.widget.SeekBar
 import android.widget.TextView
 import androidx.lifecycle.ViewModelProvider
+import kotlin.math.roundToInt
 
 
 class ControllerFragment : Fragment() {
@@ -44,10 +45,10 @@ class ControllerFragment : Fragment() {
         val bookViewModel = ViewModelProvider(requireActivity()).get(bookViewModel::class.java)
         bookViewModel.getBook().observe(viewLifecycleOwner,{Book->
             controllerDuration.text=timeDuration(Book.duration)
-            bookViewModel.getProg().observe(viewLifecycleOwner, { Prog->
-                val elapsed = ((Prog.progress.toDouble()/Prog.duration.toDouble()) * 100f).roundToInt()
+            bookViewModel.getProgress().observe(viewLifecycleOwner, { Progress->
+                val elapsed = ((Progress.progress.toDouble()/Book.duration.toDouble()) * 100f).roundToInt()
                 seekBar.progress = elapsed
-                controllerPosition.text = timeDuration(Prog.progress)
+                controllerPosition.text = timeDuration(Progress.progress)
                 controllerDuration.text = timeDuration(Book.duration)
             })
             seekBar.setOnSeekBarChangeListener(object: SeekBar.OnSeekBarChangeListener{
@@ -109,9 +110,10 @@ class ControllerFragment : Fragment() {
         fun stop()
         fun fastforward()
         fun seek(position: Double)
-    }
+    }//end of interface
+
     private fun timeDuration (elapsedTime:Int) : String{
         return DateUtils.formatElapsedTime(elapsedTime.toLong())
-    }
+    }//end of timeDuration
 
 }

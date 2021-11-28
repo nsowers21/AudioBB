@@ -1,9 +1,10 @@
 package edu.temple.audiobb
 
-import edu.temple.audlibplayermaster.PlayerService
+
 import androidx.lifecycle.LiveData
 import androidx.lifecycle.MutableLiveData
 import androidx.lifecycle.ViewModel
+import edu.temple.audlibplayer.PlayerService
 
 class bookViewModel: ViewModel() {
 
@@ -26,8 +27,8 @@ class bookViewModel: ViewModel() {
         return progress
     }
 
-    fun setProgress(progress: PlayerService.BookProgress?) {
-        this.progress.value = progress
+    fun setProgess(bookProgress: PlayerService.BookProgress) {
+        this.progress.value = bookProgress
     }
 }
 
