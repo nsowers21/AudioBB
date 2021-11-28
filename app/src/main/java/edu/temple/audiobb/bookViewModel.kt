@@ -22,11 +22,11 @@ class bookViewModel: ViewModel() {
         MutableLiveData()
     }
 
-    fun getProg(): LiveData<PlayerService.BookProgress> {
+    fun getProgress(): LiveData<PlayerService.BookProgress> {
         return progress
     }
 
-    fun setProg(progress: PlayerService.BookProgress?) {
+    fun setProgress(progress: PlayerService.BookProgress?) {
         this.progress.value = progress
     }
 }

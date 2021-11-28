@@ -1,17 +1,24 @@
 package edu.temple.audiobb
 
+import android.content.ComponentName
 import android.content.Intent
+import android.content.ServiceConnection
+import android.os.*
+import android.util.Log
 import androidx.appcompat.app.AppCompatActivity
-import android.os.Bundle
 import android.view.View
-import android.widget.Button
 import android.widget.ImageButton
 import androidx.activity.result.contract.ActivityResultContracts
 import androidx.lifecycle.ViewModelProvider
 
-class MainActivity : AppCompatActivity() , BookListFragment.BookSelectedInterface{
 
-   private lateinit var bookListFragment: BookListFragment
+class MainActivity : AppCompatActivity() , BookListFragment.BookSelectedInterface, ControllerFragment.ControllerInterface{
+
+    private lateinit var bookListFragment: BookListFragment
+    private lateinit var controllerFragment: ControllerFragment
+    var connected = false
+    public lateinit var controllerServiceBinder: PlayerService.MediaControlBinder
+
 
    private val searchRequest = registerForActivityResult(ActivityResultContracts.StartActivityForResult()){
        supportFragmentManager.popBackStack()
@@ -69,6 +76,10 @@ class MainActivity : AppCompatActivity() , BookListFragment.BookSelectedInterfac
         findViewById<ImageButton>(R.id.searchButton).setOnClickListener{
             searchRequest.launch(Intent(this, SearchActivity::class.java))
         }
+        bindService(Intent(this, PlayerService::class.java)
+            , serviceConnect
+            , BIND_AUTO_CREATE
+        )
     }//end of onCreate
 
     //callbacks in reverse
@@ -87,32 +98,57 @@ class MainActivity : AppCompatActivity() , BookListFragment.BookSelectedInterfac
         }
     }//end of selectedBook
 
+    val controllerHandler = object:Handler(Looper.myLooper()!!){
+        override fun handleMessage(msg: Message) {
+            if(msg.obj!=null){
+                bookListViewModel.setProgess(msg.obj as PlayerService.BookProgress)
+            }
+        }
+    }
+    private lateinit var controlFragment: ControllerFragment
+
+    private val serviceConnect = object : ServiceConnection {
+        override fun onServiceConnected(name: ComponentName?, service: IBinder?) {
+            connected = true
+            playerService.setProgressHandler(controllerHandler)
+            playerService = service as playerService.MediaControlBinder
+            controlFragment = ControllerFragment()
+            supportFragmentManager.beginTransaction()
+                .add(R.id.container3,ControllerFragment())
+                .commit()
+        }
+        override fun onServiceDisconnected(name: ComponentName?) {
+            connected=false
+        }
+    }
+
+
+    override fun rewind() {
+        if(playerService.isPlaying){
+            bookListViewModel.getProgress().value?.progress?.let { it1 -> playerService.seekTo(it1 - 10) }
+        }
+    }
+
+    override fun play(id: Int) {
+        playerService.play(id)
+    }
+
+    override fun pause() {
+        playerService.pause()
+    }
+
+    override fun stop() {
+        playerService.stop()
+    }
+
+    override fun fastforward() {
+        if(playerService.isPlaying){
+            bookListViewModel.getProgress().value?.progress?.let { it1 -> playerService.seekTo(it1 + 10) }
+        }
+    }
+
+    override fun seek(position: Double) {
+        playerService.seekTo(position.toInt())
+    }
+
 }//end of class
-
-/*
-landscape= findViewById<View>(R.id.containerDet)!=null
-val searchActivity = Intent(this, SearchActivity::class.java)
-//starts the main activity with the search button
-findViewById<Button>(R.id.searchButton).setOnClickListener{startActivity(searchActivity)}
-if (supportFragmentManager.findFragmentById(R.id.fragmentContainer1) is BookDetailsFragment) {
-}
-if(landscape&&supportFragmentManager.findFragmentById(R.id.containerDet)!is BookDetailsFragment){
-    supportFragmentManager.commit{
-        add(R.id.containerDet,BookDetailsFragment())
-    }
-}//end of if
-else{
-    supportFragmentManager.popBackStack()
-}//end of else
-if(savedInstanceState==null){
-    supportFragmentManager.commit{
-        add(R.id.fragmentContainer1,BookListFragment())
-    }
-}//end of if for instanceState
-else{
-    supportFragmentManager.commit{
-        replace(R.id.fragmentContainer1,BookDetailsFragment())
-    }
-}//end of else for savedState
-
- */
