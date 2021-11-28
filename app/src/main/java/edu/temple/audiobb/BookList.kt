@@ -1,19 +1,18 @@
 package edu.temple.audiobb
 
-import org.json.JSONObject
+import androidx.lifecycle.ViewModel
+import org.json.JSONArray
 import java.io.Serializable
 
-object BookList :Serializable{
-    private val bookList : MutableList<Book> by lazy {
+class BookList : ViewModel(),Serializable{
+    companion object{
+        val BOOKLIST_KEY = "Booklist"
+    }
+    private val bookList : ArrayList<Book> by lazy {
         ArrayList()
     }
-    fun addBooks(library: ArrayList<Book>){
-        for(book in library){
-            addBook(book)
-        }
-    }
 
-    fun addBook(book: Book) {
+    fun add(book: Book) {
         bookList.add(book)
     }
 
@@ -21,15 +20,18 @@ object BookList :Serializable{
         bookList.clear()
     }
 
-    operator fun get(index: Int): Book {
-        return bookList[index]
+    fun populateBooks (books: JSONArray) {
+        for (j in 0 until books.length()) {
+           bookList.add(Book(books.getJSONObject(j)))
+        }
     }
-
-    fun size(): Int {
-        return bookList.size
+    fun copyBooks(newBooks: BookList){
+        bookList.clear()
+        bookList.addAll(newBooks.bookList)
     }
+    operator fun get(index: Int) = bookList.get(index)
 
-
+    fun size() = bookList.size
 
 
 }

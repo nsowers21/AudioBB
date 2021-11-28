@@ -1,9 +1,8 @@
 package edu.temple.audiobb
 
-import com.squareup.moshi.JsonClass
+import org.json.JSONObject
 import java.io.Serializable
 
-@JsonClass(generateAdapter = true)
-data class Book(var id: Int,var title: String, var author:String, var coverURL: String):Serializable
-
-
+data class Book(val id: Int, val title: String, val author: String, val coverURL: String) : Serializable {
+    constructor(book: JSONObject) : this(book.getInt("id"), book.getString("title"), book.getString("author"), book.getString("cover_url"))
+}

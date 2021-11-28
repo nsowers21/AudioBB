@@ -15,6 +15,8 @@ class CustomAdapter(listofBooks: BookList, clicked: (Book)->Unit): RecyclerView.
         var title: TextView = itemView.findViewById(R.id.Booktitle)
         var author: TextView = itemView.findViewById(R.id.BookAuthor)
         init{
+            title = itemView.findViewById(R.id.Booktitle)
+            author= itemView.findViewById(R.id.BookAuthor)
             title.setOnClickListener {
                 clicked(Book)
             }
@@ -27,12 +29,9 @@ class CustomAdapter(listofBooks: BookList, clicked: (Book)->Unit): RecyclerView.
 
     override fun onBindViewHolder(holder: ViewHolder, position: Int) {
         //gets the position that was clicked from the list to give to the book class
-        holder.author.text=list[position].title
-        holder.title.text= list[position].author
-        holder.Book= list[position]
-
-
-
+        holder.author.text=list[position]?.title
+        holder.title.text= list[position]?.author
+        holder.Book= list.get(position)!!
     }//end of onBind
 
     override fun getItemCount(): Int {

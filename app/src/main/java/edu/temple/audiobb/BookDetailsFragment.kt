@@ -7,15 +7,12 @@ import android.view.View
 import android.view.ViewGroup
 import android.widget.ImageView
 import android.widget.TextView
-import androidx.fragment.app.activityViewModels
+import androidx.lifecycle.ViewModelProvider
 import com.squareup.picasso.Picasso
-
-// TODO: Rename parameter arguments, choose names that match
-// the fragment initialization parameters, e.g. ARG_ITEM_NUMBER
 
 class BookDetailsFragment : Fragment() {
 
-    private val viewModel: bookViewModel by activityViewModels()
+
     private lateinit var coverOfBook:ImageView
     private lateinit var titleOfBook:TextView
     private lateinit var authorOfBook:TextView
@@ -37,7 +34,7 @@ class BookDetailsFragment : Fragment() {
     //Once the view is created this allows for the book to be changed by calling the changeBook function
     override fun onViewCreated(view: View, savedInstanceState: Bundle?) {
         super.onViewCreated(view, savedInstanceState)
-        viewModel.getBook().observe(requireActivity(), {
+        ViewModelProvider(requireActivity()).get(bookViewModel::class.java).getBook().observe(requireActivity(), {
             changeBook(it)
         })
     }//end of onViewCreated
@@ -45,9 +42,9 @@ class BookDetailsFragment : Fragment() {
     //Changes the book cover, title, and author everytime a new one is selected
     private fun changeBook(book: Book?){
         book?.run {
-            Picasso.get().load(coverURL).into(coverOfBook)
-            Picasso.get().load(coverURL).into(coverOfBook)
             titleOfBook.text=title
+            authorOfBook.text = author
+            Picasso.get().load(coverURL).into(coverOfBook)
         }
     }//end of change book
 

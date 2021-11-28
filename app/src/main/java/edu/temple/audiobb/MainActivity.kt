@@ -5,76 +5,114 @@ import androidx.appcompat.app.AppCompatActivity
 import android.os.Bundle
 import android.view.View
 import android.widget.Button
-import androidx.activity.viewModels
-import androidx.fragment.app.commit
+import android.widget.ImageButton
+import androidx.activity.result.contract.ActivityResultContracts
+import androidx.lifecycle.ViewModelProvider
 
-class MainActivity : AppCompatActivity() {
+class MainActivity : AppCompatActivity() , BookListFragment.BookSelectedInterface{
 
-    private val viewModel: bookViewModel by viewModels()
-    var landscape = false
+   private lateinit var bookListFragment: BookListFragment
+
+   private val searchRequest = registerForActivityResult(ActivityResultContracts.StartActivityForResult()){
+       supportFragmentManager.popBackStack()
+       it.data?.run {
+           bookListViewModel.copyBooks(getSerializableExtra(BookList.BOOKLIST_KEY)as BookList)
+           bookListFragment.bookListUpdated()
+       }
+   }
+    private val isSingleContainer : Boolean by lazy{
+        findViewById<View>(R.id.container2) == null
+    }
+
+    private val selectedBookViewModel : bookViewModel by lazy {
+        ViewModelProvider(this).get(bookViewModel::class.java)
+    }
+
+    private val bookListViewModel : BookList by lazy {
+        ViewModelProvider(this).get(BookList::class.java)
+    }
+    companion object {
+        const val BOOKLISTFRAGMENT_KEY = "BookListFragment"
+    }
 
     override fun onCreate(savedInstanceState: Bundle?) {
         super.onCreate(savedInstanceState)
         setContentView(R.layout.activity_main)
-        landscape= findViewById<View>(R.id.containerDet)!=null
-        val searchActivity = Intent(this, SearchActivity::class.java)
-        //starts the main activity with the search button
-        findViewById<Button>(R.id.searchButton).setOnClickListener{startActivity(searchActivity)}
-        if (supportFragmentManager.findFragmentById(R.id.fragmentContainer1) is BookDetailsFragment) {
-        }
-        if(landscape&&supportFragmentManager.findFragmentById(R.id.containerDet)!is BookDetailsFragment){
-            supportFragmentManager.commit{
-                add(R.id.containerDet,BookDetailsFragment())
-            }
-        }//end of if
-        else{
+
+        // If we're switching from one container to two containers
+        // clear BookDetailsFragment from container1
+        if(supportFragmentManager.findFragmentById(R.id.container1) is BookDetailsFragment
+            && selectedBookViewModel.getBook().value!=null){
             supportFragmentManager.popBackStack()
-        }//end of else
-        if(savedInstanceState==null){
-            supportFragmentManager.commit{
-                add(R.id.fragmentContainer1,BookListFragment())
+        }
+
+        if(savedInstanceState ==null){
+            bookListFragment= BookListFragment()
+            supportFragmentManager.beginTransaction()
+                .add(R.id.container1,bookListFragment, BOOKLISTFRAGMENT_KEY)
+                .commit()
+        }else{
+            bookListFragment=supportFragmentManager.findFragmentByTag(BOOKLISTFRAGMENT_KEY) as BookListFragment
+            if(isSingleContainer&&selectedBookViewModel.getBook().value!=null){
+                supportFragmentManager.beginTransaction()
+                    .replace(R.id.container1, BookDetailsFragment())
+                    .setReorderingAllowed(true)
+                    .addToBackStack(null)
+                    .commit()
             }
-        }//end of if for instanceState
-        else{
-            supportFragmentManager.commit{
-                replace(R.id.fragmentContainer1,BookDetailsFragment())
-            }
-        }//end of else for savedState
+        }
+
+        if(!isSingleContainer&& supportFragmentManager.findFragmentById(R.id.container2) !is BookDetailsFragment)
+            supportFragmentManager.beginTransaction()
+                .add(R.id.container2,BookDetailsFragment())
+                .commit()
+        findViewById<ImageButton>(R.id.searchButton).setOnClickListener{
+            searchRequest.launch(Intent(this, SearchActivity::class.java))
+        }
     }//end of onCreate
 
     //callbacks in reverse
     override fun onBackPressed() {
+        selectedBookViewModel.setSelectedBook(null)
         super.onBackPressed()
-        viewModel.setSelectedBook(null)
     }//end of onBackPressed
 
-    fun selectedBook(){
-        if(!landscape){
-            supportFragmentManager.commit {
-                replace(R.id.fragmentContainer1,BookDetailsFragment())
-                setReorderingAllowed(true)
-            }
+    override fun bookSelected(){
+        if(isSingleContainer){
+            supportFragmentManager.beginTransaction()
+                .replace(R.id.container1,BookDetailsFragment())
+                .setReorderingAllowed(true)
+                .addToBackStack(null)
+                .commit()
         }
     }//end of selectedBook
 
 }//end of class
 
 /*
-      viewModel.setTwoPane(resources.configuration.orientation==Configuration.ORIENTATION_LANDSCAPE)
-      //leaving blank to start
-      viewModel.setSelectedBook(Book("",""))
-      if(resources.configuration.orientation == Configuration.ORIENTATION_LANDSCAPE){
-          supportFragmentManager.popBackStack()
-          supportFragmentManager.beginTransaction().
-          add(R.id.containerDet, viewModel.bookDetFrag)
-              .commit()
-      }else{
-          supportFragmentManager.popBackStack()
-      }
-      if(savedInstanceState==null){
-          supportFragmentManager.commit{
-              add(R.id.fragmentContainerView,viewModel.booklistFrag)
-          }
-      }
+landscape= findViewById<View>(R.id.containerDet)!=null
+val searchActivity = Intent(this, SearchActivity::class.java)
+//starts the main activity with the search button
+findViewById<Button>(R.id.searchButton).setOnClickListener{startActivity(searchActivity)}
+if (supportFragmentManager.findFragmentById(R.id.fragmentContainer1) is BookDetailsFragment) {
+}
+if(landscape&&supportFragmentManager.findFragmentById(R.id.containerDet)!is BookDetailsFragment){
+    supportFragmentManager.commit{
+        add(R.id.containerDet,BookDetailsFragment())
+    }
+}//end of if
+else{
+    supportFragmentManager.popBackStack()
+}//end of else
+if(savedInstanceState==null){
+    supportFragmentManager.commit{
+        add(R.id.fragmentContainer1,BookListFragment())
+    }
+}//end of if for instanceState
+else{
+    supportFragmentManager.commit{
+        replace(R.id.fragmentContainer1,BookDetailsFragment())
+    }
+}//end of else for savedState
 
-       */
+ */
