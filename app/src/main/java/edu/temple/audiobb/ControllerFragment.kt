@@ -15,7 +15,7 @@ class ControllerFragment : Fragment() {
     lateinit var playButton: ImageButton
     lateinit var pauseButton: ImageButton
     lateinit var stopButton: ImageView
-    lateinit var seekBar: SeekBar
+    var seekBar: SeekBar? = null
     var nowPlayingTextView: TextView? = null
 
     override fun onCreateView(inflater: LayoutInflater, container: ViewGroup?,savedInstanceState: Bundle?): View {
@@ -33,10 +33,8 @@ class ControllerFragment : Fragment() {
                 }//end of if
             }
             override fun onStartTrackingTouch(seekBar: SeekBar?) {
-                TODO("Not yet implemented")
             }
             override fun onStopTrackingTouch(seekBar: SeekBar?) {
-                TODO("Not yet implemented")
             }
         })//end of  seekBar onclickListener
 
@@ -48,6 +46,12 @@ class ControllerFragment : Fragment() {
                 R.id.stopButton -> parent.stop()
             }//end of when
         }//end of onClick
+
+        //this is where the click of each button is made
+        playButton.setOnClickListener(onClickListener)
+        pauseButton.setOnClickListener(onClickListener)
+        stopButton.setOnClickListener(onClickListener)
+
         return layout
     }//end of onCreate
 
