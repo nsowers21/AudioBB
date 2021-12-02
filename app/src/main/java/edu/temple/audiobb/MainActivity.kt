@@ -9,31 +9,28 @@ import androidx.appcompat.app.AppCompatActivity
 import android.view.View
 import android.widget.ImageButton
 import androidx.activity.result.contract.ActivityResultContracts
-import androidx.fragment.app.commit
 import androidx.lifecycle.ViewModelProvider
+import com.android.volley.toolbox.JsonObjectRequest
+import com.android.volley.toolbox.Volley
 import edu.temple.audlibplayer.PlayerService
+import com.android.volley.Request
 
 
 class MainActivity : AppCompatActivity() , BookListFragment.BookSelectedInterface, ControllerFragment.ControllerInterface{
 
+    //intializing everything
     private lateinit var bookListFragment: BookListFragment
-    private lateinit var controllerFragment: ControllerFragment
-    var connected = false
-    lateinit var bookViewModel: bookViewModel
-
-   private val searchRequest = registerForActivityResult(ActivityResultContracts.StartActivityForResult()){
-       supportFragmentManager.popBackStack()
-       it.data?.run {
-           bookListViewModel.copyBooks(getSerializableExtra(BookList.BOOKLIST_KEY)as BookList)
-           bookListFragment.bookListUpdated()
-       }
-   }
+    private lateinit var mediaControlBinder: PlayerService.MediaControlBinder
+    private var connected = false
     private val isSingleContainer : Boolean by lazy{
         findViewById<View>(R.id.container2) == null
     }
 
     private val selectedBookViewModel : bookViewModel by lazy {
         ViewModelProvider(this).get(bookViewModel::class.java)
+    }
+    private val playingBookViewModel : PlayingBookViewModel by lazy {
+        ViewModelProvider(this).get(PlayingBookViewModel::class.java)
     }
 
     private val bookListViewModel : BookList by lazy {
@@ -42,10 +39,58 @@ class MainActivity : AppCompatActivity() , BookListFragment.BookSelectedInterfac
     companion object {
         const val BOOKLISTFRAGMENT_KEY = "BookListFragment"
     }
+    //done intialization
+
+    val audioBookHandler = Handler(Looper.getMainLooper()){ msg ->
+        msg.obj?.let { msgObj ->
+            val bookProgress = msgObj as PlayerService.BookProgress
+            if(playingBookViewModel.getBookPlaying().value == null){
+               Volley.newRequestQueue(this)
+                   .add(JsonObjectRequest(Request.Method.GET,API.getBookDataUrl(bookProgress.bookId),null,{ jsonObject ->
+                       playingBookViewModel.setBookPlaying(Book(jsonObject))
+                       if( selectedBookViewModel.getBook().value==null){
+                           selectedBookViewModel.setSelectedBook(playingBookViewModel.getBookPlaying().value)
+                           bookSelected()
+                       }
+                   },{}))
+            }
+            supportFragmentManager.findFragmentById(R.id.controlFragmentContainerView)?.run{
+                with(this as ControllerFragment){
+                    playingBookViewModel.getBookPlaying().value?.also{
+                        setPlayProgress(((bookProgress.progress/it.duration.toFloat())*100).toInt())
+                    }
+                }
+            }
+        }//end of msg
+        true
+    }//end of handler
+
+    private val searchRequest = registerForActivityResult(ActivityResultContracts.StartActivityForResult()){
+       supportFragmentManager.popBackStack()
+       it.data?.run {
+           bookListViewModel.copyBooks(getSerializableExtra(BookList.BOOKLIST_KEY)as BookList)
+           bookListFragment.bookListUpdated()
+       }
+    }//end of searchRequest`
+
+    private val serviceConnect = object : ServiceConnection {
+        override fun onServiceConnected(name: ComponentName?, service: IBinder?) {
+            mediaControlBinder = service as PlayerService.MediaControlBinder
+            mediaControlBinder.setProgressHandler(audioBookHandler)
+            connected = true
+        }//end of CONNECTED
+        override fun onServiceDisconnected(name: ComponentName?) {
+            connected=false
+        }//end of DISCONNECTED
+    }//end of service connect
 
     override fun onCreate(savedInstanceState: Bundle?) {
         super.onCreate(savedInstanceState)
         setContentView(R.layout.activity_main)
+
+        playingBookViewModel.getBookPlaying().observe(this,{
+            (supportFragmentManager.findFragmentById(R.id.controlFragmentContainerView) as ControllerFragment).setNowPlaying(it.title)
+        })
 
         // If we're switching from one container to two containers
         // clear BookDetailsFragment from container1
@@ -76,11 +121,13 @@ class MainActivity : AppCompatActivity() , BookListFragment.BookSelectedInterfac
                 .commit()
         findViewById<ImageButton>(R.id.searchButton).setOnClickListener{
             searchRequest.launch(Intent(this, SearchActivity::class.java))
-        }
+        }//end of portrait mode
+
         bindService(Intent(this, PlayerService::class.java)
             , serviceConnect
             , BIND_AUTO_CREATE
-        )
+        )//end of bind service
+
     }//end of onCreate
 
     //callbacks in reverse
@@ -99,58 +146,33 @@ class MainActivity : AppCompatActivity() , BookListFragment.BookSelectedInterfac
         }
     }//end of selectedBook
 
-    val controllerHandler = object:Handler(Looper.myLooper()!!){
-        override fun handleMessage(msg: Message) {
-            if(msg.obj!=null){
-                bookViewModel.setProgess(msg.obj as PlayerService.BookProgress)
-            }
+    override fun play() {
+        if(connected && selectedBookViewModel.getBook().value!=null){
+            Log.d("Button pressed", "Play button")
+            mediaControlBinder.play(selectedBookViewModel.getBook().value!!.id)
+            playingBookViewModel.setBookPlaying(selectedBookViewModel.getBook().value)
+            startService(Intent(this, PlayerService::class.java))
         }
-    }
-    private lateinit var controlFragment: ControllerFragment
-    lateinit var playerService: PlayerService.MediaControlBinder
-    private val serviceConnect = object : ServiceConnection {
-        override fun onServiceConnected(name: ComponentName?, service: IBinder?) {
-            connected = true
-            playerService = service as PlayerService.MediaControlBinder
-            playerService.setProgressHandler(controllerHandler)
-            controlFragment = ControllerFragment()
-            supportFragmentManager.commit {
-                add(R.id.container3, controlFragment)
-                hide(controlFragment)
-            }
-        }
-        override fun onServiceDisconnected(name: ComponentName?) {
-            connected=false
-        }
-    }
-
-
-    override fun rewind() {
-        if(playerService.isPlaying){
-            bookViewModel.getProgress().value?.progress?.let { it1 -> playerService.seekTo(it1 - 10) }
-        }
-    }
-
-    override fun play(id: Int) {
-        playerService.play(id)
-    }
+    }//end of play fun
 
     override fun pause() {
-        playerService.pause()
-    }
+        if(connected) mediaControlBinder.pause()
+    }//end of pause
 
     override fun stop() {
-        playerService.stop()
-    }
+        if(connected) mediaControlBinder.stop()
+        stopService(Intent(this, PlayerService::class.java))
+    }//end of stop
 
-    override fun fastforward() {
-        if(playerService.isPlaying){
-            bookViewModel.getProgress().value?.progress?.let { it1 -> playerService.seekTo(it1 + 10) }
-        }
-    }
+    override fun seek(position: Int) {
+        if(connected &&mediaControlBinder.isPlaying) mediaControlBinder
+            .seekTo((playingBookViewModel
+                .getBookPlaying().value!!.duration*(position.toFloat()/100)).toInt())
+    }//end of seek
 
-    override fun seek(position: Double) {
-        playerService.seekTo(position.toInt())
-    }
+    override fun onDestroy() {
+        super.onDestroy()
+        unbindService(serviceConnect)
+    }//end of onDestroy
 
 }//end of class
