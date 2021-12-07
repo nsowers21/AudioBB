@@ -5,6 +5,7 @@ import android.os.Bundle
 import com.android.volley.RequestQueue
 import com.android.volley.toolbox.Volley
 import android.content.Intent
+import android.util.Log
 import android.widget.Button
 import android.widget.EditText
 import android.widget.ImageButton
@@ -25,6 +26,7 @@ class SearchActivity : AppCompatActivity() {
         searchButton.setOnClickListener {
             val url = "https://kamorris.com/lab/cis3515/search.php?term="+
                     findViewById<EditText>(R.id.booksearch).text.toString()
+            Log.d("URL:", url)
             Volley.newRequestQueue(this).add(
                 JsonArrayRequest(Request.Method.GET, url, null, {
                     setResult(

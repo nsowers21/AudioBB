@@ -38,6 +38,7 @@ class ControllerFragment : Fragment() {
             }
         })//end of  seekBar onclickListener
 
+
         val onClickListener = View.OnClickListener {
             var parent = activity as ControllerInterface
             when(it.id){
@@ -54,6 +55,8 @@ class ControllerFragment : Fragment() {
 
         return layout
     }//end of onCreate
+
+
 
     fun setNowPlaying(title: String){
         nowPlayingTextView?.text = title

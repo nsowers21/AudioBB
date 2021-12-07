@@ -1,10 +1,13 @@
 package edu.temple.audiobb
 
+import android.app.DownloadManager
 import android.content.ComponentName
 import android.content.Intent
 import android.content.ServiceConnection
+import android.net.Uri
 import android.os.*
 import android.util.Log
+import android.util.SparseArray
 import androidx.appcompat.app.AppCompatActivity
 import android.view.View
 import android.widget.ImageButton
@@ -14,6 +17,7 @@ import com.android.volley.toolbox.JsonObjectRequest
 import com.android.volley.toolbox.Volley
 import edu.temple.audlibplayer.PlayerService
 import com.android.volley.Request
+import edu.temple.audiobb.API.URL.DownloadedList
 
 
 class MainActivity : AppCompatActivity() , BookListFragment.BookSelectedInterface, ControllerFragment.ControllerInterface{
@@ -38,6 +42,9 @@ class MainActivity : AppCompatActivity() , BookListFragment.BookSelectedInterfac
     }
     companion object {
         const val BOOKLISTFRAGMENT_KEY = "BookListFragment"
+    }
+    private val timeSavedList: SparseArray<Int> by lazy{
+        SparseArray()
     }
     //done intialization
 
@@ -149,19 +156,41 @@ class MainActivity : AppCompatActivity() , BookListFragment.BookSelectedInterfac
     override fun play() {
         if(connected && selectedBookViewModel.getBook().value!=null){
             Log.d("Button pressed", "Play button")
-            mediaControlBinder.play(selectedBookViewModel.getBook().value!!.id)
-            playingBookViewModel.setBookPlaying(selectedBookViewModel.getBook().value)
-            startService(Intent(this, PlayerService::class.java))
+            if(DownloadedList.indexOf(selectedBookViewModel.getBook().value!!.title)==-1){
+                DownloadBook(selectedBookViewModel.getBook().value!!)
+                mediaControlBinder.play(selectedBookViewModel.getBook().value!!.id)
+                playingBookViewModel.setBookPlaying(selectedBookViewModel.getBook().value)
+                startService(Intent(this, PlayerService::class.java))
+            }
+            else {
+                mediaControlBinder.play(selectedBookViewModel.getBook().value!!.id)
+                playingBookViewModel.setProgress(timeSavedList.get(selectedBookViewModel.getBook().value!!.id))
+                playingBookViewModel.setBookPlaying(selectedBookViewModel.getBook().value)
+                startService(Intent(this, PlayerService::class.java))
+            }
         }
+
     }//end of play fun
+
+    fun DownloadBook(book:Book) {
+        val request = DownloadManager.Request(Uri.parse(API.getBookDataUrl(book.id)))
+            .setTitle("File")
+            .setDescription("Downloading...")
+            .setNotificationVisibility(DownloadManager.Request.VISIBILITY_VISIBLE_NOTIFY_COMPLETED)
+            .setAllowedOverMetered(true)
+        val dm = getSystemService(DOWNLOAD_SERVICE) as DownloadManager
+        dm.enqueue(request)
+    }
 
     override fun pause() {
         if(connected) mediaControlBinder.pause()
+        timeSavedList.append(selectedBookViewModel.getBook().value!!.id,selectedBookViewModel.getBook().value!!.duration)
     }//end of pause
 
     override fun stop() {
         if(connected) mediaControlBinder.stop()
         stopService(Intent(this, PlayerService::class.java))
+        timeSavedList.append(selectedBookViewModel.getBook().value!!.id,0)
     }//end of stop
 
     override fun seek(position: Int) {
@@ -172,6 +201,7 @@ class MainActivity : AppCompatActivity() , BookListFragment.BookSelectedInterfac
 
     override fun onDestroy() {
         super.onDestroy()
+
         unbindService(serviceConnect)
     }//end of onDestroy
 
